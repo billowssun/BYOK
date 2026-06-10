@@ -126,6 +126,26 @@ const PROVIDER_LIMITS = {
   minimax: { imageCount: 9, references: true }
 };
 
+const DEFAULT_BASE_URLS = {
+  openai: "https://api.openai.com/v1",
+  gemini: "https://generativelanguage.googleapis.com/v1beta",
+  alibaba: "https://dashscope.aliyuncs.com",
+  minimax: "https://api.minimax.io/v1",
+  volcengine: "https://ark.cn-beijing.volces.com/api/v3",
+  kling: "https://api.klingapi.com",
+  xfyun: "wss://iat-api.xfyun.cn/v2/iat"
+};
+
+const TEST_AREAS = {
+  openai: "image",
+  gemini: "image",
+  alibaba: "image",
+  minimax: "speech",
+  volcengine: "image",
+  kling: "video",
+  xfyun: "transcribe"
+};
+
 const PANEL_PROVIDER = {
   image: () => $("#imageProvider").value,
   video: () => $("#videoProvider").value,
@@ -182,7 +202,8 @@ const els = {
   transcribeResultModel: $("#transcribeResultModel"),
   speechResultModel: $("#speechResultModel"),
   historyList: $("#historyList"),
-  providerCount: $("#providerCount")
+  providerCount: $("#providerCount"),
+  toast: $("#toast")
 };
 
 function escapeHtml(str) {
@@ -373,6 +394,8 @@ function updateProviderStatus() {
     const ready = Boolean(providerKey(provider));
     status.textContent = ready ? "已配置" : "未配置";
     status.classList.toggle("is-ready", ready);
+    const group = status.closest("[data-provider-config]");
+    if (group) group.dataset.ready = ready ? "true" : "false";
   });
 
   $$("[data-provider-status]").forEach((badge) => {
@@ -398,6 +421,8 @@ function updateProviderStatus() {
   els.keyNotice.classList.toggle("is-hidden", ready);
   els.keyNoticeTitle.textContent = `${PROVIDER_LABELS[provider]} API Key 未配置`;
   els.keyNoticeText.textContent = `当前功能需要 ${PROVIDER_LABELS[provider]} Key。请在右上角设置中填写后再使用。`;
+  updateProviderFilter();
+  updateBaseUrlWarnings();
 }
 
 function requireKey(provider) {
@@ -416,11 +441,82 @@ function setBusy(button, busy, text) {
   button.textContent = busy ? "处理中..." : text;
 }
 
+function currentProviderFilter() {
+  return $("[data-provider-filter].is-active")?.dataset.providerFilter || "all";
+}
+
+function updateProviderFilter() {
+  const filter = currentProviderFilter();
+  $$("[data-provider-config]").forEach((group) => {
+    const ready = group.dataset.ready === "true";
+    const hidden = (filter === "ready" && !ready) || (filter === "missing" && ready);
+    group.classList.toggle("is-filtered", hidden);
+  });
+}
+
+function normalizeUrlText(value) {
+  return String(value || "").trim().replace(/\/+$/, "");
+}
+
+function updateBaseUrlWarnings() {
+  $$("[data-base-url]").forEach((input) => {
+    const provider = input.dataset.baseUrl;
+    const warning = $(`[data-base-warning="${provider}"]`);
+    if (!warning) return;
+    const value = normalizeUrlText(input.value);
+    const defaultValue = normalizeUrlText(DEFAULT_BASE_URLS[provider]);
+    const isDefault = value === defaultValue;
+    const isSecure = value.startsWith("https://") || value.startsWith("wss://");
+    const messages = [];
+    if (!isSecure) messages.push("当前地址不是 HTTPS/WSS，请确认它是可信接口。");
+    if (!isDefault) messages.push("当前使用自定义 Base URL，Key 会发送到这个地址。");
+    warning.textContent = messages.join(" ");
+    warning.classList.toggle("is-hidden", !messages.length);
+  });
+}
+
 function setResultState(element, stateName, text) {
   element.classList.toggle("is-empty", stateName === "empty");
   element.classList.toggle("is-loading", stateName === "loading");
   element.classList.toggle("has-result", stateName === "result");
   if (text !== undefined) element.textContent = text;
+}
+
+let toastTimer = 0;
+function showToast(message) {
+  if (!els.toast) return;
+  clearTimeout(toastTimer);
+  els.toast.textContent = message;
+  els.toast.classList.add("is-visible");
+  toastTimer = setTimeout(() => {
+    els.toast.classList.remove("is-visible");
+  }, 2200);
+}
+
+async function copyText(text) {
+  if (!text.trim()) {
+    showToast("暂无可复制内容");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("结果已复制");
+  } catch {
+    showToast("浏览器未允许复制");
+  }
+}
+
+function resultCopyText(element) {
+  const media = Array.from(element.querySelectorAll("img, audio"))
+    .map((item) => item.currentSrc || item.src)
+    .filter(Boolean);
+  if (media.length) return media.join("\n");
+  return element.innerText || element.textContent || "";
+}
+
+function resetResult(element) {
+  const emptyText = element.dataset.emptyText || "结果会显示在这里";
+  setResultState(element, "empty", emptyText);
 }
 
 function setOptions(select, options) {
@@ -478,6 +574,39 @@ async function refreshModels(area, provider, { silent = false } = {}) {
     return cachedModels(area, provider) || fallbackModels(area, provider);
   } finally {
     if (button && !silent) setBusy(button, false, originalText);
+  }
+}
+
+async function testProviderConnection(provider, button) {
+  if (!requireKey(provider)) {
+    showToast(`请先填写 ${PROVIDER_LABELS[provider]} Key`);
+    return;
+  }
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "测试中...";
+  button.classList.remove("is-ok", "is-error");
+  try {
+    const response = await fetch("/api/models", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...connection(provider), area: TEST_AREAS[provider] || "image" })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "连接测试失败");
+    button.classList.add("is-ok");
+    button.textContent = "连接可用";
+    showToast(`${PROVIDER_LABELS[provider]} 连接可用`);
+  } catch (error) {
+    button.classList.add("is-error");
+    button.textContent = "测试失败";
+    showToast(error.message || "连接测试失败");
+  } finally {
+    setTimeout(() => {
+      button.disabled = false;
+      button.classList.remove("is-ok", "is-error");
+      button.textContent = originalText;
+    }, 2200);
   }
 }
 
@@ -857,6 +986,7 @@ function bindEvents() {
   updateProviderModels("transcribe");
   updateProviderModels("speech");
   updateProviderStatus();
+  updateBaseUrlWarnings();
   els.providerCount.textContent = `${$$("[data-provider-config]").length} 个厂商`;
 
   els.openSettings.addEventListener("click", () => {
@@ -871,6 +1001,7 @@ function bindEvents() {
     input.addEventListener("change", saveConnection);
   });
   [els.baseUrl, els.geminiBaseUrl, els.alibabaBaseUrl, els.minimaxBaseUrl, els.volcengineBaseUrl, els.klingBaseUrl, els.xfyunBaseUrl].forEach((input) => {
+    input.addEventListener("input", updateBaseUrlWarnings);
     input.addEventListener("change", saveConnection);
   });
   els.clearConnection.addEventListener("click", () => {
@@ -896,6 +1027,30 @@ function bindEvents() {
     if (storageAvailable()) { localStorage.removeItem("media-client.connection"); localStorage.removeItem(ENC_STORE_KEY); }
     updateProviderStatus();
   });
+
+  $$("[data-provider-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      $$("[data-provider-filter]").forEach((item) => item.classList.toggle("is-active", item === button));
+      updateProviderFilter();
+    });
+  });
+
+  $$("[data-toggle-secret]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const provider = button.dataset.toggleSecret;
+      const input = $(`[data-secret-input="${provider}"]`);
+      if (!input) return;
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      button.title = visible ? "显示 Key" : "隐藏 Key";
+      button.classList.toggle("is-active", !visible);
+    });
+  });
+
+  $$("[data-test-provider]").forEach((button) => {
+    button.addEventListener("click", () => testProviderConnection(button.dataset.testProvider, button));
+  });
+
   $$("[data-provider-config]").forEach((group) => {
     group.addEventListener("toggle", () => {
       if (!group.open) return;
@@ -924,6 +1079,26 @@ function bindEvents() {
         if (area === "transcribe") els.transcribeResultModel.textContent = `${PROVIDER_LABELS[provider]} / ${$("#transcribeModel").value}`;
         if (area === "speech") els.speechResultModel.textContent = `${PROVIDER_LABELS[provider]} / ${$("#speechModel").value}`;
       }
+    });
+  });
+
+  $$("[data-copy-result]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = $(`#${button.dataset.copyResult}`);
+      if (!target || !target.classList.contains("has-result")) {
+        showToast("暂无可复制内容");
+        return;
+      }
+      copyText(resultCopyText(target));
+    });
+  });
+
+  $$("[data-clear-result]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = $(`#${button.dataset.clearResult}`);
+      if (!target) return;
+      resetResult(target);
+      showToast("结果已清空");
     });
   });
 

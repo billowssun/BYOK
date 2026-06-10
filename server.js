@@ -73,16 +73,36 @@ const mimeTypes = {
   ".webp": "image/webp"
 };
 
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  try {
+    const url = new URL(origin);
+    return ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function securityHeaders(req) {
+  const origin = String(req.headers.origin || "");
+  const headers = {
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "content-security-policy": "default-src 'self'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https: http:; connect-src 'self' https: http: wss:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'self'; frame-ancestors 'none'"
+  };
+  if (isAllowedOrigin(origin)) headers["access-control-allow-origin"] = origin;
+  return headers;
+}
+
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
-    "access-control-allow-origin": "*",
     "access-control-allow-methods": "POST, GET, OPTIONS",
     "access-control-allow-headers": "content-type",
-    "x-content-type-options": "nosniff",
-    "x-frame-options": "DENY",
-    "referrer-policy": "strict-origin-when-cross-origin"
+    ...securityHeaders(res.req || {})
   });
   res.end(JSON.stringify(payload));
 }
@@ -980,9 +1000,7 @@ async function serveStatic(req, res) {
     res.writeHead(200, {
       "content-type": mimeTypes[extname(filePath)] || "application/octet-stream",
       "cache-control": "no-store",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "DENY",
-      "referrer-policy": "strict-origin-when-cross-origin"
+      ...securityHeaders(req)
     });
     res.end(content);
   } catch (err) {
@@ -1005,11 +1023,13 @@ function safeRoute(fn, req, res) {
 }
 
 const server = createServer((req, res) => {
+  res.req = req;
+
   if (req.method === "OPTIONS") {
     res.writeHead(204, {
-      "access-control-allow-origin": "*",
       "access-control-allow-methods": "POST, GET, OPTIONS",
-      "access-control-allow-headers": "content-type"
+      "access-control-allow-headers": "content-type",
+      ...securityHeaders(req)
     });
     return res.end();
   }

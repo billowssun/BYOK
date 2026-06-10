@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8fb" />
     <title>BYOK</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -16,7 +17,10 @@
             <path d="M6 17h6"/>
             <path d="M6 19h4"/>
           </svg>
-          <strong>BYOK</strong>
+          <span>
+            <strong>BYOK</strong>
+            <small>多模型创作工作台</small>
+          </span>
         </div>
 
         <nav class="nav-tabs" aria-label="功能导航">
@@ -55,6 +59,11 @@
               </div>
               <span class="settings-count" id="providerCount">7 个厂商</span>
             </div>
+            <div class="settings-filters" aria-label="供应商筛选">
+              <button class="is-active" data-provider-filter="all" type="button">全部</button>
+              <button data-provider-filter="ready" type="button">已配置</button>
+              <button data-provider-filter="missing" type="button">未配置</button>
+            </div>
 
             <details class="provider-config" data-provider-config="openai" open>
               <summary>
@@ -72,12 +81,19 @@
                 </div>
                 <label class="field">
                   <span>API Key</span>
-                  <input id="openaiKey" type="password" placeholder="sk-..." autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="openaiKey" type="password" placeholder="sk-..." autocomplete="off" data-secret-input="openai" />
+                    <button class="icon-button" data-toggle-secret="openai" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>Base URL</span>
-                  <input id="baseUrl" value="https://api.openai.com/v1" spellcheck="false" />
+                  <input id="baseUrl" value="https://api.openai.com/v1" spellcheck="false" data-base-url="openai" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="openai"></p>
+                <button class="test-connection" data-test-provider="openai" type="button">测试连接</button>
               </div>
             </details>
 
@@ -97,12 +113,19 @@
                 </div>
                 <label class="field">
                   <span>API Key</span>
-                  <input id="geminiKey" type="password" placeholder="AIza..." autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="geminiKey" type="password" placeholder="AIza..." autocomplete="off" data-secret-input="gemini" />
+                    <button class="icon-button" data-toggle-secret="gemini" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>Base URL</span>
-                  <input id="geminiBaseUrl" value="https://generativelanguage.googleapis.com/v1beta" spellcheck="false" />
+                  <input id="geminiBaseUrl" value="https://generativelanguage.googleapis.com/v1beta" spellcheck="false" data-base-url="gemini" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="gemini"></p>
+                <button class="test-connection" data-test-provider="gemini" type="button">测试连接</button>
               </div>
             </details>
 
@@ -122,12 +145,19 @@
                 </div>
                 <label class="field">
                   <span>API Key</span>
-                  <input id="alibabaKey" type="password" placeholder="sk-..." autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="alibabaKey" type="password" placeholder="sk-..." autocomplete="off" data-secret-input="alibaba" />
+                    <button class="icon-button" data-toggle-secret="alibaba" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>Base URL</span>
-                  <input id="alibabaBaseUrl" value="https://dashscope.aliyuncs.com" spellcheck="false" />
+                  <input id="alibabaBaseUrl" value="https://dashscope.aliyuncs.com" spellcheck="false" data-base-url="alibaba" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="alibaba"></p>
+                <button class="test-connection" data-test-provider="alibaba" type="button">测试连接</button>
               </div>
             </details>
 
@@ -147,12 +177,19 @@
                 </div>
                 <label class="field">
                   <span>API Key</span>
-                  <input id="minimaxKey" type="password" placeholder="sk-..." autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="minimaxKey" type="password" placeholder="sk-..." autocomplete="off" data-secret-input="minimax" />
+                    <button class="icon-button" data-toggle-secret="minimax" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>Base URL</span>
-                  <input id="minimaxBaseUrl" value="https://api.minimax.io/v1" spellcheck="false" />
+                  <input id="minimaxBaseUrl" value="https://api.minimax.io/v1" spellcheck="false" data-base-url="minimax" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="minimax"></p>
+                <button class="test-connection" data-test-provider="minimax" type="button">测试连接</button>
               </div>
             </details>
 
@@ -172,12 +209,18 @@
                 </div>
                 <label class="field">
                   <span>API Key / Access Token</span>
-                  <input id="volcengineKey" type="password" placeholder="Bearer Key 或 Access Token" autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="volcengineKey" type="password" placeholder="Bearer Key 或 Access Token" autocomplete="off" data-secret-input="volcengine" />
+                    <button class="icon-button" data-toggle-secret="volcengine" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>Base URL</span>
-                  <input id="volcengineBaseUrl" value="https://ark.cn-beijing.volces.com/api/v3" spellcheck="false" />
+                  <input id="volcengineBaseUrl" value="https://ark.cn-beijing.volces.com/api/v3" spellcheck="false" data-base-url="volcengine" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="volcengine"></p>
                 <label class="field">
                   <span>语音 App ID</span>
                   <input id="volcengineAppId" placeholder="仅 ASR/TTS 需要" autocomplete="off" />
@@ -186,6 +229,7 @@
                   <span>语音 Cluster</span>
                   <input id="volcengineCluster" value="volcano_tts" spellcheck="false" />
                 </label>
+                <button class="test-connection" data-test-provider="volcengine" type="button">测试连接</button>
               </div>
             </details>
 
@@ -205,12 +249,19 @@
                 </div>
                 <label class="field">
                   <span>API Key</span>
-                  <input id="klingKey" type="password" placeholder="Kling API Key" autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="klingKey" type="password" placeholder="Kling API Key" autocomplete="off" data-secret-input="kling" />
+                    <button class="icon-button" data-toggle-secret="kling" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>Base URL</span>
-                  <input id="klingBaseUrl" value="https://api.klingapi.com" spellcheck="false" />
+                  <input id="klingBaseUrl" value="https://api.klingapi.com" spellcheck="false" data-base-url="kling" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="kling"></p>
+                <button class="test-connection" data-test-provider="kling" type="button">测试连接</button>
               </div>
             </details>
 
@@ -234,7 +285,12 @@
                 </label>
                 <label class="field">
                   <span>API Key</span>
-                  <input id="xfyunKey" type="password" placeholder="讯飞 APIKey" autocomplete="off" />
+                  <div class="secret-field">
+                    <input id="xfyunKey" type="password" placeholder="讯飞 APIKey" autocomplete="off" data-secret-input="xfyun" />
+                    <button class="icon-button" data-toggle-secret="xfyun" type="button" title="显示 Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </div>
                 </label>
                 <label class="field">
                   <span>API Secret</span>
@@ -242,8 +298,10 @@
                 </label>
                 <label class="field">
                   <span>ASR Base URL</span>
-                  <input id="xfyunBaseUrl" value="wss://iat-api.xfyun.cn/v2/iat" spellcheck="false" />
+                  <input id="xfyunBaseUrl" value="wss://iat-api.xfyun.cn/v2/iat" spellcheck="false" data-base-url="xfyun" />
                 </label>
+                <p class="base-url-warning is-hidden" data-base-warning="xfyun"></p>
+                <button class="test-connection" data-test-provider="xfyun" type="button">测试连接</button>
               </div>
             </details>
 
@@ -251,6 +309,7 @@
               <input id="rememberConnection" type="checkbox" />
               <span>保存在当前浏览器</span>
             </label>
+            <p class="security-note">密钥只会随请求发送到你选择的接口地址；保存到浏览器时会做本地加密，但仍建议只在可信设备上启用。</p>
             <button id="clearConnection" class="ghost-button" type="button">清空连接</button>
           </div>
         </details>
@@ -354,9 +413,17 @@
           <section class="panel result-panel">
             <div class="panel-title">
               <strong>结果预览</strong>
-              <span id="imageResultModel">gpt-image-2</span>
+              <div class="panel-actions">
+                <span id="imageResultModel">gpt-image-2</span>
+                <button class="icon-button" data-copy-result="imageResults" type="button" title="复制结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                </button>
+                <button class="icon-button" data-clear-result="imageResults" type="button" title="清空结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 15h10l1-15" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                </button>
+              </div>
             </div>
-            <div class="result-box image-results is-empty" id="imageResults">图片结果会显示在这里</div>
+            <div class="result-box image-results is-empty" id="imageResults" data-empty-text="图片结果会显示在这里">图片结果会显示在这里</div>
           </section>
         </div>
       </section>
@@ -433,8 +500,19 @@
             </div>
           </section>
           <section class="panel result-panel">
-            <div class="panel-title"><strong>任务结果</strong><span id="videoResultStatus">/videos</span></div>
-            <pre class="result-box text-result is-empty" id="videoResults">视频任务信息会显示在这里</pre>
+            <div class="panel-title">
+              <strong>任务结果</strong>
+              <div class="panel-actions">
+                <span id="videoResultStatus">/videos</span>
+                <button class="icon-button" data-copy-result="videoResults" type="button" title="复制结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                </button>
+                <button class="icon-button" data-clear-result="videoResults" type="button" title="清空结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 15h10l1-15" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                </button>
+              </div>
+            </div>
+            <pre class="result-box text-result is-empty" id="videoResults" data-empty-text="视频任务信息会显示在这里">视频任务信息会显示在这里</pre>
           </section>
         </div>
       </section>
@@ -494,8 +572,19 @@
             </div>
           </section>
           <section class="panel result-panel">
-            <div class="panel-title"><strong>转写结果</strong><span id="transcribeResultModel">/audio/transcriptions</span></div>
-            <div class="result-box text-result is-empty" id="transcribeResults">文本会显示在这里</div>
+            <div class="panel-title">
+              <strong>转写结果</strong>
+              <div class="panel-actions">
+                <span id="transcribeResultModel">/audio/transcriptions</span>
+                <button class="icon-button" data-copy-result="transcribeResults" type="button" title="复制结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                </button>
+                <button class="icon-button" data-clear-result="transcribeResults" type="button" title="清空结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 15h10l1-15" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="result-box text-result is-empty" id="transcribeResults" data-empty-text="文本会显示在这里">文本会显示在这里</div>
           </section>
         </div>
       </section>
@@ -556,8 +645,19 @@
             </div>
           </section>
           <section class="panel result-panel">
-            <div class="panel-title"><strong>音频预览</strong><span id="speechResultModel">/audio/speech</span></div>
-            <div class="result-box is-empty" id="speechResults">音频播放器会显示在这里</div>
+            <div class="panel-title">
+              <strong>音频预览</strong>
+              <div class="panel-actions">
+                <span id="speechResultModel">/audio/speech</span>
+                <button class="icon-button" data-copy-result="speechResults" type="button" title="复制结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                </button>
+                <button class="icon-button" data-clear-result="speechResults" type="button" title="清空结果">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 15h10l1-15" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="result-box is-empty" id="speechResults" data-empty-text="音频播放器会显示在这里">音频播放器会显示在这里</div>
           </section>
         </div>
       </section>
@@ -574,6 +674,7 @@
         <section class="panel history-list" id="historyList"></section>
       </section>
     </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./app.js"></script>
   </body>
